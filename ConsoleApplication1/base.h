@@ -3,6 +3,19 @@
 #include <format>
 #include "notifiable.h"
 
+template<typename T>
+concept HasFullDate = requires(T o) {
+	o.created_at;
+	o.created_hour;
+	o.created_minute;
+	o.created_second;
+};
+
+template<typename T>
+concept HasDateOnly = requires(T o) {
+	o.created_at;
+};
+
 #pragma once
 template <typename T>
 class base : public notifiable
@@ -16,30 +29,38 @@ public:
 	base(const T& id) : id(id)
 	{
 		// a classe base sempre dá subscribe o handler para tratar as notificações
-		this->subscribe([](notification myNotification) {
+		this->subscribe([this](const notification& myNotification) {
 			std::cout << std::format(
 				"Notification event invoked by \"{}\" with message: \"{}\", at: {}\n",
 				myNotification.property,
 				myNotification.message,
-				std::format("{:02}/{:02}/{}, {:02}:{:02}:{:02}",
-					static_cast<unsigned>(myNotification.created_at.day()),
-					static_cast<unsigned>(myNotification.created_at.month()),
-					static_cast<int>(myNotification.created_at.year()),
-					myNotification.created_hour.count(),
-					myNotification.created_minute.count(),
-					myNotification.created_second.count()
-				)
+				base::getDataStr(myNotification)
 			);
 			});
 	}
 
-	std::string getDataStr()
+	template<typename D>
+	static std::string getDataStr(const D& obj)
 	{
-		std::string dataStr = std::format("{:02}/{:02}/{}",
-			static_cast<unsigned>(created_at.day()),
-			static_cast<unsigned>(created_at.month()),
-			static_cast<int>(created_at.year())
-		);
-		return dataStr;
+		if constexpr (HasFullDate<D>)
+		{
+			return std::format("{:02}/{:02}/{}, {:02}:{:02}:{:02}",
+				static_cast<unsigned>(obj.created_at.day()),
+				static_cast<unsigned>(obj.created_at.month()),
+				static_cast<int>(obj.created_at.year()),
+				obj.created_hour.count(),
+				obj.created_minute.count(),
+				obj.created_second.count()
+			);
+		}
+		else if constexpr (HasDateOnly<D>)
+		{
+			return std::format("{:02}/{:02}/{}",
+				static_cast<unsigned>(obj.created_at.day()),
+				static_cast<unsigned>(obj.created_at.month()),
+				static_cast<int>(obj.created_at.year())
+			);
+		}
+		return "[ERR] empty date.";
 	}
 };
