@@ -3,17 +3,17 @@
 #include <format>
 #include "notifiable.h"
 
-template<typename T>
-concept HasFullDate = requires(T o) {
-	o.created_at;
-	o.created_hour;
-	o.created_minute;
-	o.created_second;
+template<typename C>
+concept HasFullDate = requires(C obj) {
+	obj.created_at;
+	obj.created_hour;
+	obj.created_minute;
+	obj.created_second;
 };
 
-template<typename T>
-concept HasDateOnly = requires(T o) {
-	o.created_at;
+template<typename C>
+concept HasDateOnly = requires(C obj) {
+	obj.created_at;
 };
 
 inline std::chrono::year_month_day nowDate()
