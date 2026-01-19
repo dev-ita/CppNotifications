@@ -16,6 +16,12 @@ concept HasDateOnly = requires(T o) {
 	o.created_at;
 };
 
+inline std::chrono::year_month_day nowDate()
+{
+	return std::chrono::floor<std::chrono::days>(
+		std::chrono::system_clock::now());
+}
+
 #pragma once
 template <typename T>
 class base : public notifiable
@@ -23,10 +29,10 @@ class base : public notifiable
 public:
 	T id{};
 	std::chrono::year_month_day created_at{
-		std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now())
+		nowDate()
 	};
 
-	base(const T& id) : id(id)
+	explicit base(const T& id) : id(id)
 	{
 		// a classe base sempre dá subscribe o handler para tratar as notificações
 		this->subscribe([this](const notification& myNotification) {
